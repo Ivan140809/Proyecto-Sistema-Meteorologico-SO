@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "buffer.h"
 
-int buffer_init(Buffer *b, int tam) {
+int inicializarRecursos(Buffer *b, int tam) {
    b->datos = malloc(sizeof(Medicion) * tam);
    if (b->datos == NULL) {
    return 0;
@@ -27,7 +27,7 @@ if (pthread_mutex_init(&b->mutex_buffer, NULL) != 0) {
  return 1;
 }
 
-void buffer_destroy(Buffer *b) {
+void destructorRecursos(Buffer *b) {
  sem_destroy(&b->espacios_libres);
  sem_destroy(&b->items_disponibles);
  pthread_mutex_destroy(&b->mutex_buffer);

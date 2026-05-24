@@ -15,8 +15,8 @@ typedef struct Buffer {
     pthread_mutex_t mutex_buffer;
 } Buffer;
 
-int buffer_init(Buffer *b, int tam);
-void buffer_destroy(Buffer *b);
+int  inicializarRecursos(Buffer *b, int tam);
+void destructorRecursos(Buffer *b);
 
 #endif
 
