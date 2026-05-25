@@ -1,3 +1,14 @@
+/* Modulo de monitor de categorizacion de hilos con monitor
+* Archivo: monitor.c  
+* Autor: I. Lastra, J. Mejia, A. Arunachalam, C. Quintero
+* Contiene: Monitor de comunicacion de los procesos, recibe las
+* mediciones enviadas por los Agentes de Medición a través de un pipe
+* nominal, las distribuye en buffers acotados por estación mediante un
+* hilo Recolector, y emplea hilos Consumidores que escriben el archivo
+* consolidado y acumulan los datos para el reporte final.
+* Fecha: Mayo 2026
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,23 +41,40 @@ FILE *archivo_consolidado;
 int fd_pipe;
 int tamBuffer;
 
+/* Funcion: buscar_estacion
+ * Parametros de Entrada: nombre de la estacion
+ * Valor de salida: indice de la estacion o -1 si no esta
+ * Descripción: Recorre el arreglo global de estaciones y retorna el indice
+ * de aquella cuyo nombre coincide con el parametro recibido */
+
 int buscar_estacion(char *nombre) {
- for (int i = 0; i < NumEstaciones; i++) {
-   if (strcmp(estaciones[i].nombre,nombre) ==0) {
-    return i;
+for (int i = 0; i < NumEstaciones; i++) {
+ if (strcmp(estaciones[i].nombre,nombre) ==0) {
+  return i;
   }
  }
 return -1;
 }
+/* Funcion: hora_a_segundos
+ * Parametros de Entrada: cadena con formato HHMMSS
+ * Valor de salida: total de segundos o -1 si el formato es invalido
+ * Descripción: Convierte una hora en formato HHMMSS a su equivalente en
+ * segundos para poder calcular diferencias de tiempo entre mediciones */
 
 int hora_a_segundos(char *hora) {
     int h,mi,s;
     if (sscanf(hora,"%d:%d:%d",&h,&mi,&s) != 3) {
         return -1;
     }
-    return h *3600L +mi*60L+s;
+    return h *3600 +mi*60 +s;
 }
 
+/* Funcion: hilo_recolector
+ * Parametros de Entrada: 
+ * Valor de salida: NULL o ninguno dependiendo del flujo
+ * Descripción: Hilo productor unico que lee continuamente del pipe, acumula
+ * los bytes recibidos hasta formar lineas completas, parsea cada linea y
+ * deposita la medicion en el buffer de la estacion correspondiente */
 void *hilo_recolector(void *arg) {
   (void)arg;
 char acumulador[8192];
@@ -122,8 +150,13 @@ for (int i = 0; i < NumEstaciones; i++) {
  return NULL;
 }
 
+/* Funcion: hilo_consumidor
+ * Parámetros de Entrada: puntero al indice de la estacion asignada
+ * Valor de salida: NULL o ninguno dependiendo del contexto
+ * Descripción: Hilo consumidor que extrae mediciones del buffer de su
+ * estacion, las escribe en el archivo consolidado, acumula sumas para el
+ * promedio y detecta huecos de mas de dos horas entre mediciones */
 void *hilo_consumidor(void *arg) {
-
 int idx = *(int *)arg;
 EstadoEstacion *est = &estaciones[idx];
 while (true) {
@@ -167,12 +200,10 @@ while (true) {
  est->contador += 1;
 
  if (est->ultima_hora[0] != '\0') {
-
   int t_actual = hora_a_segundos(med.hora);
   int t_prev = hora_a_segundos(est->ultima_hora);
 
   if (t_actual >= 0 && t_prev >= 0) {
-
    int diff = t_actual - t_prev;
 
    if (diff < 0) {
@@ -188,11 +219,16 @@ while (true) {
  strncpy(est->ultima_hora,med.hora,MaxHora - 1);
  est->ultima_hora[MaxHora - 1] = '\0';
 }
-
  return NULL;
 }
+/* Funcion: generar_reporte
+ * Parámetros de Entrada: ninguno
+ * Valor de salida: cadena con la categoria meteorologica
+ * Descripción: Calcula el promedio global de humedad, rocio y presion a
+ * partir de los promedios por estacion y aplica las reglas de la Tabla 2
+ * para retornar Lluvioso, Nublado, Fresco o Indeterminado */
 
-char *generar_reporte(void) {
+char *generar_reporte() {
 int promH_global = 0;
 int promR_global = 0;
 int promP_global = 0;
@@ -228,6 +264,13 @@ if (promH < 80 && promR >= 5 && promR <= 8 && promP > 754) {
 }
  return "Indeterminado";
 }
+/* Funcion: main
+ * Parámetros de Entrada: cantidad de argumentos y arreglo de argumentos por terminal
+ * Valor de salida: 0 si termino correctamente o 1 si hubo error
+ * Descripción: Procesa los flags -b y -p, crea el FIFO, inicializa los
+ * buffers de cada estacion, crea el hilo recolector y los hilos
+ * consumidores, espera a que terminen, imprime el reporte final y libera
+ * todos los recursos del sistema */
 
 int main(int argc,char *argv[]) {
 char *nombrePipe = NULL;

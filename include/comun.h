@@ -1,3 +1,10 @@
+/* Modulo para almacenar estructura y variables globales
+* Archivo: comun.cpp
+* Autor: I. Lastra, J. Mejia, A. Arunachalam, C. Quintero
+* Contiene: Cabecera compartida entre el agente y el monitor. Define las
+* constantes globales del sistema que se van a usar con las estructuras Medicion y Buffer
+* Fecha: Mayo 2026
+*/
 #ifndef COMUN_H
 #define COMUN_H
 
