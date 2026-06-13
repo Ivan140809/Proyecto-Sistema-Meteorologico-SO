@@ -1,6 +1,8 @@
 # Proyecto Sistema Meteorológico (SO)
 
-Repositorio de un sistema simple de adquisición y monitorización meteorológica, usando conceptos de hilos, procesos,comunicacion de procesos con pipes nominales, semaforos, mutex.
+[![C++](https://img.shields.io/badge/C++-11-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)](https://isocpp.org/) [![GCC](https://img.shields.io/badge/GCC-g++-A42E2B?style=for-the-badge&logo=gnu&logoColor=white)](https://gcc.gnu.org/) [![Java](https://img.shields.io/badge/Java-11+-orange?style=for-the-badge&logo=openjdk&logoColor=white)](https://openjdk.org/) [![Status](https://img.shields.io/badge/Estado-Finalizado-brightgreen?style=for-the-badge)](https://github.com/)
+
+Repositorio de un sistema simple de adquisición y monitorización meteorológica, usando conceptos de hilos, procesos, comunicación de procesos con pipes nominales, semáforos y mutex.
 
 ## Descripción
 Este proyecto contiene un conjunto de programas en C para leer datos de sensores, procesarlos y generar un archivo consolidado. Incluye un agente principal (`agenteM`) y una utilidad de monitorización (`monitor`).
